@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "Blueprint/UserWidget.h"
 #include "PlayerW.h"
+#include "Components/SphereComponent.h"
 #include "Survival_InventoryCharacter.generated.h"
 
 class USpringArmComponent;
@@ -49,10 +50,10 @@ class ASurvival_InventoryCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LineTraceAction;
 
+
 public:
 	ASurvival_InventoryCharacter();
 	
-
 protected:
 
 	/** Called for movement input */
@@ -69,7 +70,7 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaTime) override;
-	virtual void PerformLineTrace();
+	//virtual void PerformLineTrace();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UUserWidget> PlayerWidgetClass;
@@ -87,6 +88,18 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	UFUNCTION()
+	void OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+							  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+							  bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
+							UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
+	USphereComponent* SphereDetection;
 
 private:
 	bool IsInspecting;

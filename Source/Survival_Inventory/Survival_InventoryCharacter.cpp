@@ -13,6 +13,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerW.h"
 #include "Interface_InteractObject.h"
+#include "Chaos/ChaosPerfTest.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -55,6 +56,19 @@ ASurvival_InventoryCharacter::ASurvival_InventoryCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	//Create sphere collision
+	SphereDetection = CreateDefaultSubobject<USphereComponent>(TEXT("SphereDetection"));
+	SphereDetection->InitSphereRadius(50.f);
+	SphereDetection->SetupAttachment(RootComponent);
+	SphereDetection->ShapeColor.Red;
+
+	SphereDetection->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereDetection->SetCollisionObjectType(ECC_WorldDynamic);
+	SphereDetection->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+	SphereDetection->OnComponentBeginOverlap.AddDynamic(this, &ASurvival_InventoryCharacter::OnSphereOverlapBegin);
+	SphereDetection->OnComponentEndOverlap.AddDynamic(this, &ASurvival_InventoryCharacter::OnSphereOverlapEnd);
 }
 
 void ASurvival_InventoryCharacter::BeginPlay()
@@ -87,23 +101,62 @@ void ASurvival_InventoryCharacter::Tick(float DeltaTime)
 	{
 		//PerformLineTrace();
 	}
+
+	// DrawDebug to see the sphereCollision
+
+	/*
+	FVector SphereLocation = SphereDetection->GetComponentLocation();
+	float SphereRadius = SphereDetection->GetScaledSphereRadius();
+	FColor SphereColor = FColor::Red;
+
+	DrawDebugSphere(GetWorld(), SphereLocation, SphereRadius, 20, SphereColor, false, 0.1f);
+	*/
 }
 
+void ASurvival_InventoryCharacter::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(OtherActor && OtherActor != this && OtherComp)
+	{
+		if(OtherActor->GetClass()->ImplementsInterface(UInterface_InteractObject::StaticClass()))
+		{
+			CurrentItem = OtherActor;
+			PlayerWidget->SetPrompt_F(true);
+		}
+	}
+}
+
+void ASurvival_InventoryCharacter::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if(OtherActor && OtherActor != this)
+	{
+		CurrentItem = nullptr;
+		PlayerWidget->SetPrompt_F(false);
+	}
+}
+
+// Linetrace switch by a sphere
+/*
 void ASurvival_InventoryCharacter::PerformLineTrace()
 {
-	FVector Start = FollowCamera->GetComponentLocation();
-	FVector ForwardVector = FollowCamera->GetForwardVector();
-	FVector End = ((ForwardVector * 1000.f) + Start);
+	FVector Start = GetActorLocation();
+	//FVector ForwardVector = GetActorForwardVector();
+	//FVector End = Start;
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
 
 	FHitResult HitResult;
-	FCollisionObjectQueryParams ObjectQueryParams(ObjectTypes);
+//	FCollisionObjectQueryParams ObjectQueryParams(ObjectTypes);
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this);
+	
+	float SphereRadius = 160.f;
+	
 
-	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, FCollisionObjectQueryParams(ObjectTypes), CollisionParams);
+	bool bHit = GetWorld()->SweepSingleByObjectType(HitResult, Start, Start, FQuat:: Identity,
+		FCollisionObjectQueryParams(ObjectTypes), FCollisionShape:: MakeSphere(SphereRadius), CollisionParams);
 
 	if(bHit && HitResult.GetActor() != nullptr)
 	{
@@ -112,7 +165,6 @@ void ASurvival_InventoryCharacter::PerformLineTrace()
 		if(HitActor->GetClass()->ImplementsInterface(UInterface_InteractObject::StaticClass()))
 		{
 			CurrentItem = HitActor;
-
 			PlayerWidget->SetPrompt_F(true);
 		}
 		else
@@ -127,8 +179,9 @@ void ASurvival_InventoryCharacter::PerformLineTrace()
 		PlayerWidget->SetPrompt_F(false);
 	}
 
-	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 2.0f, 0, 1.0f);
+	DrawDebugSphere(GetWorld(), Start, SphereRadius, 12, FColor::Red, false, 2.0f);
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -157,7 +210,7 @@ void ASurvival_InventoryCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASurvival_InventoryCharacter::Look);
 
-		EnhancedInputComponent->BindAction(LineTraceAction, ETriggerEvent::Triggered, this, &ASurvival_InventoryCharacter::PerformLineTrace);
+		//EnhancedInputComponent->BindAction(LineTraceAction, ETriggerEvent::Triggered, this, &ASurvival_InventoryCharacter::PerformLineTrace);
 	}
 	else
 	{
