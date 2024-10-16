@@ -44,6 +44,9 @@ class ASurvival_InventoryCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LineTraceAction;
+
 public:
 	ASurvival_InventoryCharacter();
 	
@@ -63,6 +66,8 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
+	virtual void PerformLineTrace();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UUserWidget> PlayerWidgetClass;
@@ -75,5 +80,11 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+private:
+	bool IsInspecting;
+	UPlayerW* PlayerWidget;
+	UInterface_InteractObject* CurrentItem;
+	
 };
 

@@ -11,7 +11,7 @@ class UPlayerW : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Custom Event")
-	void SetPrompt_F();
+	void SetPrompt_F(bool IsVisible);
 
 protected:
 	UPROPERTY(meta = (BindWidget = "Panel"))
@@ -21,5 +21,4 @@ protected:
 	class UTextBlock* TextBlock;
 
 private:
-	bool IsVisible;
 };

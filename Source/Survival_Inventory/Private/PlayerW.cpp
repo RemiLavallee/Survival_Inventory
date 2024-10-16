@@ -5,10 +5,10 @@
 #include "Components/TextBlock.h"
 #include "Elements/Framework/TypedElementQueryBuilder.h"
 
-void UPlayerW::SetPrompt_F()
+void UPlayerW::SetPrompt_F(bool IsVisible)
 {
-	if(IsVisible)
+	if(TextBlock)
 	{
-		TextBlock->SetVisibility(static_cast<ESlateVisibility>(true));
+		TextBlock->SetVisibility(IsVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }

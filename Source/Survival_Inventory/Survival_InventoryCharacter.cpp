@@ -11,6 +11,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Blueprint/UserWidget.h"
+#include "PlayerW.h"
+#include "Interface_InteractObject.generated.h"
+#include "Interface_InteractObject.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -66,8 +69,64 @@ void ASurvival_InventoryCharacter::BeginPlay()
 		if(PlayerWidgetInstance)
 		{
 			PlayerWidgetInstance->AddToViewport();
+
+			if(PlayerWidget == Cast<UPlayerW>(PlayerWidgetInstance))
+			{
+				PlayerWidget->SetPrompt_F(false);
+			}
 		}
 	}
+}
+
+void ASurvival_InventoryCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if(!IsInspecting)
+	{
+		//PerformLineTrace();
+	}
+}
+
+void ASurvival_InventoryCharacter::PerformLineTrace()
+{
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector ForwardVector = FollowCamera->GetForwardVector();
+	FVector End = ((ForwardVector * 1000.f) + Start);
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+
+	FHitResult HitResult;
+	FCollisionObjectQueryParams ObjectQueryParams(ObjectTypes);
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, FCollisionObjectQueryParams(ObjectTypes), CollisionParams);
+
+	if(bHit && HitResult.GetActor() != nullptr)
+	{
+		AActor* HitActor = HitResult.GetActor();
+
+		if(HitActor->GetClass()->ImplementsInterface(UInterface_InteractObject::StaticClass()))
+		{
+			//CurrentItem  HitActor;
+
+			PlayerWidget->SetPrompt_F(true);
+		}
+		else
+		{
+			CurrentItem = nullptr;
+			PlayerWidget->SetPrompt_F(false);
+		}
+	}
+	else
+	{
+		CurrentItem = nullptr;
+		PlayerWidget->SetPrompt_F(false);
+	}
+
+	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 2.0f, 0, 1.0f);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,6 +155,8 @@ void ASurvival_InventoryCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASurvival_InventoryCharacter::Look);
+
+		EnhancedInputComponent->BindAction(LineTraceAction, ETriggerEvent::Triggered, this, &ASurvival_InventoryCharacter::PerformLineTrace);
 	}
 	else
 	{
