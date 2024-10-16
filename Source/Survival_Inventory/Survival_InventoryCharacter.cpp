@@ -12,7 +12,6 @@
 #include "InputActionValue.h"
 #include "Blueprint/UserWidget.h"
 #include "PlayerW.h"
-#include "Interface_InteractObject.generated.h"
 #include "Interface_InteractObject.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -62,7 +61,7 @@ void ASurvival_InventoryCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
+	
 	if(PlayerWidgetClass)
 	{
 		PlayerWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), PlayerWidgetClass);
@@ -70,7 +69,9 @@ void ASurvival_InventoryCharacter::BeginPlay()
 		{
 			PlayerWidgetInstance->AddToViewport();
 
-			if(PlayerWidget == Cast<UPlayerW>(PlayerWidgetInstance))
+			PlayerWidget = Cast<UPlayerW>(PlayerWidgetInstance);
+				
+			if(PlayerWidget)
 			{
 				PlayerWidget->SetPrompt_F(false);
 			}
@@ -110,7 +111,7 @@ void ASurvival_InventoryCharacter::PerformLineTrace()
 
 		if(HitActor->GetClass()->ImplementsInterface(UInterface_InteractObject::StaticClass()))
 		{
-			//CurrentItem  HitActor;
+			CurrentItem = HitActor;
 
 			PlayerWidget->SetPrompt_F(true);
 		}

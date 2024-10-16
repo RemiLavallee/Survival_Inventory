@@ -15,5 +15,5 @@ class IInterface_InteractObject
 	GENERATED_BODY()
 
 public:
-	virtual void Interact();
+	virtual void Interact() = 0;
 };

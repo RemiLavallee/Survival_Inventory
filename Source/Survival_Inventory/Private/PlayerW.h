@@ -19,6 +19,4 @@ protected:
 
 	UPROPERTY(meta = (BindWidget = "Prompt_F"))
 	class UTextBlock* TextBlock;
-
-private:
 };

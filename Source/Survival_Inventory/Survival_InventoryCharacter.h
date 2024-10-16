@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Blueprint/UserWidget.h"
+#include "PlayerW.h"
 #include "Survival_InventoryCharacter.generated.h"
 
 class USpringArmComponent;
@@ -75,6 +77,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UUserWidget* PlayerWidgetInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	UPlayerW* PlayerWidget;
+	
+	AActor* CurrentItem;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -83,8 +90,5 @@ public:
 
 private:
 	bool IsInspecting;
-	UPlayerW* PlayerWidget;
-	UInterface_InteractObject* CurrentItem;
-	
 };
 
